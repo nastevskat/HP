@@ -5,8 +5,6 @@ import SwiftData
 @Observable class BooksViewModel {
     var books = [Book]()
     var modelContext: ModelContext
-    var count: Int = 0
-    var didFetchContent = false
     let max: Int = 5
     var page: Int = 1
     
@@ -15,114 +13,93 @@ import SwiftData
     }
     
     func fetchNextPage() async {
-        page += 1
-        let urlString = "https://potterapi-fedeperin.vercel.app/en/books?max=\(max)&page=\(page)"
-        guard let url = URL(string: urlString) else { return }
+     
+        print("fetching page: \(page)")
+        await fetchBooksFromAPI(page: page + 1)
         
-        do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let decoder = JSONDecoder()
-            let decodedData = (try? decoder.decode([Book].self, from: data)) ?? []
-            books.append(contentsOf: decodedData)
-            
-            for book in decodedData {
-                self.modelContext.insert(book)
-            }
-            
-            modelContextSave()
-            print("fetching 5 more books")
-        } catch {
-            print("An error occurred")
-        }
     }
     
-    func fetchBooksFromAPI() async {
-        page = 1
-        do {
-            let descriptor = FetchDescriptor<Book>()
-            let existingBooks = try modelContext.fetch(descriptor)
-            existingBooks.forEach { book in
-                modelContext.delete(book)
-            }
-            
-            modelContextSave()
-            books.removeAll()
-        } catch {
-            print("Error clearing data: \(error.localizedDescription)")
+    private func isBookInDatabase(_ bookId: Int) throws -> Bool {
+        let descriptor = FetchDescriptor<Book>(predicate: #Predicate<Book> { book in
+            book.id == bookId
+        })
+        return try modelContext.fetch(descriptor).first != nil
+    }
+    
+    func fetchBooksFromAPI(page: Int = 1) async {
+        let urlString = "https://potterapi-fedeperin.vercel.app/en/books?max=\(max)&page=\(page)"
+        guard let url = URL(string: urlString) else {
+            print("url string failed, fetching from db")
+            fetchBooksFromLocalStorage()
+            return
         }
         
-        let urlString = "https://potterapi-fedeperin.vercel.app/en/books?max=\(max)&page=\(page)"
-        guard let url = URL(string: urlString) else { return }
+        print("page number \(page)")
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-            let decoder = JSONDecoder()
-            let decodedData = try decoder.decode([Book].self, from: data)
+            let decodedData = try JSONDecoder().decode([Book].self, from: data)
             
-            DispatchQueue.main.async {
-                self.books.append(contentsOf: decodedData)
-                
-                for book in decodedData {
-                    self.modelContext.insert(book)
+            if page == 1 {
+                let descriptor = FetchDescriptor<Book>()
+                let existingBooks = try modelContext.fetch(descriptor)
+                for book in existingBooks {
+                    modelContext.delete(book)
+                    print("deleting everything")
                 }
-                
-                self.modelContextSave()
+                modelContextSave()
             }
+            
+            for book in decodedData {
+                if try !isBookInDatabase(book.id) {
+                    modelContext.insert(book)
+                    print("inserting book in db")
+                }
+            }
+        
+            modelContextSave()
+            
         } catch let error as DecodingError {
-            print(error.localizedDescription)
+            print("Decoding error: \(error.localizedDescription)")
         } catch {
-            print("An error occurred")
+            print("API or database error: \(error.localizedDescription)")
         }
+        
+        fetchBooksFromLocalStorage()
     }
     
     func fetchBooks() async {
         do {
             let descriptor = FetchDescriptor<Book>(sortBy: [SortDescriptor(\.title)])
-            count = try modelContext.fetchCount(descriptor)
+            let localCount = try modelContext.fetchCount(descriptor)
+            
+            if localCount == 0 {
+                print("fetching from API")
+                await fetchBooksFromAPI(page: 1)
+            } else {
+                print("fetching from local storage")
+                fetchBooksFromLocalStorage()
+            }
+            
         } catch {
-            print("fetch failed")
-        }
-        
-        print(count)
-        
-        if count == 0 {
-            print("fetching from API")
-            await fetchBooksFromAPI()
-        } else {
-            print("fetching from local storage")
+            print("Initial fetch failed: \(error.localizedDescription)")
             fetchBooksFromLocalStorage()
         }
-        
-        didFetchContent = true
     }
     
     func fetchBooksFromLocalStorage() {
         do {
             let descriptor = FetchDescriptor<Book>(sortBy: [SortDescriptor(\.title)])
             books = try modelContext.fetch(descriptor)
+            print("Loaded \(books.count) books from storage")
         } catch {
-            print("fetch failed")
+            print("Local storage fetch failed: \(error.localizedDescription)")
         }
     }
     
-    func toggleFavorite(for bookId: Int) {
-        let descriptor = FetchDescriptor<Book>(predicate: #Predicate<Book> { book in
-            book.id == bookId
-        })
-        
-        do {
-            if let book = try modelContext.fetch(descriptor).first {
-                book.isFavorite.toggle()
-                
-                if let index = books.firstIndex(where: { $0.id == bookId }) {
-                    books[index].isFavorite = book.isFavorite
-                }
-                
-                modelContextSave()
-            }
-        } catch {
-            print("Error toggling favorite: \(error.localizedDescription)")
-        }
+    func toggleFavorite(for book: Book) {
+        book.isFavorite.toggle()
+        modelContextSave()
     }
     
     func modelContextSave() {

@@ -30,7 +30,26 @@ class Character: Codable {
     
     required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = 
+        id = try container.decode(Int.self, forKey: .id)
+        fullName = try container.decode(String.self, forKey: .fullName)
+        nickname = try container.decode(String.self, forKey: .nickname)
+        hogwartsHouse = try container.decode(String.self, forKey: .hogwartsHouse)
+        interpretedBy = try container.decode(String.self, forKey: .interpretedBy)
+        children = try container.decode([String].self, forKey: .children)
+        image = try container.decode(String.self, forKey: .image)
+        birthdate = try container.decode(String.self, forKey: .birthdate)
+    }
+    
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(fullName, forKey: .fullName)
+        try container.encode(nickname, forKey: .nickname)
+        try container.encode(hogwartsHouse, forKey: .hogwartsHouse)
+        try container.encode(interpretedBy, forKey: .interpretedBy)
+        try container.encode(children, forKey: .children)
+        try container.encode(image, forKey: .image)
+        try container.encode(birthdate, forKey: .birthdate)
     }
 }
 

@@ -38,14 +38,12 @@ struct BooksListView: View {
             }
             .navigationTitle("Books")
             .task {
-                if !viewModel.didFetchContent {
-                    await viewModel.fetchBooks()
-                }
+                await viewModel.fetchBooks()
             }
-        }
-        .refreshable {
-            print("refetching from API")
-            await viewModel.fetchBooksFromAPI()
+            .refreshable {
+                print("refetching from API")
+                await viewModel.fetchBooksFromAPI()
+                }
         }
     }
     

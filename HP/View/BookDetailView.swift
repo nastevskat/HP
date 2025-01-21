@@ -28,7 +28,7 @@ struct BookDetailView: View {
                 HStack {
                     Text("Add to Favorites:")
                     Button {
-                        viewModel.toggleFavorite(for: book.id)
+                        viewModel.toggleFavorite(for: book)
                     } label: {
                         Image(systemName: book.isFavorite ? "heart.fill" : "heart")
                             .foregroundStyle(book.isFavorite ? .red : .gray)
