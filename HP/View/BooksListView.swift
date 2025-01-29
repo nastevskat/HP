@@ -3,6 +3,7 @@ import SwiftData
 
 struct BooksListView: View {
     let viewModel: BooksViewModel
+    @State private var uiImage: UIImage?
     
     var body: some View {
         NavigationStack {
@@ -15,6 +16,7 @@ struct BooksListView: View {
                             HStack {
                                 Image(systemName: book.isFavorite ? "heart.fill" : "heart")
                                     .foregroundColor(book.isFavorite ? .red : .gray)
+                                
                                 Text(book.title)
                                     .font(.largeTitle)
                                     .padding()
@@ -42,6 +44,7 @@ struct BooksListView: View {
             }
             .refreshable {
                 print("refetching from API")
+                viewModel.clearAllImages()
                 await viewModel.fetchBooksFromAPI()
                 }
         }

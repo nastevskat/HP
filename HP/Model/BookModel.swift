@@ -12,6 +12,7 @@ class Book: Codable {
     var pages: Int
     var cover: String
     var isFavorite: Bool
+    var localImgURL: String?
     
     enum CodingKeys: String, CodingKey {
         case id = "index"
@@ -23,9 +24,10 @@ class Book: Codable {
         case pages
         case cover
         case isFavorite
+        case localImgURL
     }
     
-    init(id: Int, number: Int, title: String, originalTitle: String, releaseDate: String, desc: String, pages: Int, cover: String, isFavorite: Bool = false) {
+    init(id: Int, number: Int, title: String, originalTitle: String, releaseDate: String, desc: String, pages: Int, cover: String, isFavorite: Bool = false, localImgURL: String? = nil) {
         self.id = id
         self.number = number
         self.title = title
@@ -35,6 +37,7 @@ class Book: Codable {
         self.pages = pages
         self.cover = cover
         self.isFavorite = isFavorite
+        self.localImgURL = localImgURL
     }
     
     required init(from decoder: Decoder) throws {
@@ -48,6 +51,7 @@ class Book: Codable {
         pages = try container.decode(Int.self, forKey: .pages)
         cover = try container.decode(String.self, forKey: .cover)
         isFavorite = try container.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
+        localImgURL = try container.decodeIfPresent(String.self, forKey: .localImgURL)
     }
     
     func encode(to encoder: any Encoder) throws {
@@ -61,5 +65,6 @@ class Book: Codable {
         try container.encode(pages, forKey: .pages)
         try container.encode(cover, forKey: .cover)
         try container.encode(isFavorite, forKey: .isFavorite)
+        try container.encode(localImgURL, forKey: .localImgURL)
     }
 }
