@@ -2,22 +2,26 @@ import Foundation
 import SwiftData
 
 @Model
-class Character: Codable {
+class Character: Codable, Persistable {
+    var isFavorite: Bool
+    
     @Attribute(.unique) var id: Int
-    var fullName: String
+    var fullName: String?
     var nickname: String
     var hogwartsHouse: String
     var interpretedBy: String
     var children: [String]
     var image: String
     var birthdate: String
+    var localImgURL: String?
+    var title: String?
     
     enum CodingKeys: String, CodingKey {
         case id = "index"
-        case fullName, nickname, hogwartsHouse, interpretedBy, children, image, birthdate
+        case fullName, nickname, hogwartsHouse, interpretedBy, children, image, birthdate, localImgURL, title, isFavorite
     }
     
-    init(id: Int, fullName: String, nickname: String, hogwartsHouse: String, interpretedBy: String, children: [String], image: String, birthdate: String) {
+    init(id: Int, fullName: String? = nil, nickname: String, hogwartsHouse: String, interpretedBy: String, children: [String], image: String, birthdate: String, localImgURL: String? = nil, title: String? = nil, isFavorite: Bool = false) {
         self.id = id
         self.fullName = fullName
         self.nickname = nickname
@@ -26,6 +30,9 @@ class Character: Codable {
         self.children = children
         self.image = image
         self.birthdate = birthdate
+        self.localImgURL = localImgURL
+        self.title = title
+        self.isFavorite = isFavorite
     }
     
     required init(from decoder: Decoder) throws {
@@ -38,6 +45,9 @@ class Character: Codable {
         children = try container.decode([String].self, forKey: .children)
         image = try container.decode(String.self, forKey: .image)
         birthdate = try container.decode(String.self, forKey: .birthdate)
+        localImgURL = try container.decodeIfPresent(String.self, forKey: .localImgURL)
+        title = try container.decodeIfPresent(String.self, forKey: .title)
+        isFavorite = try container.decodeIfPresent(Bool.self, forKey: .isFavorite) ?? false
     }
     
     func encode(to encoder: any Encoder) throws {
@@ -50,7 +60,8 @@ class Character: Codable {
         try container.encode(children, forKey: .children)
         try container.encode(image, forKey: .image)
         try container.encode(birthdate, forKey: .birthdate)
+        try container.encode(localImgURL, forKey: .localImgURL)
+        try container.encode(title, forKey: .title)
+        try container.encode(isFavorite, forKey: .isFavorite)
     }
 }
-
-

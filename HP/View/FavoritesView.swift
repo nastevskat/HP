@@ -2,7 +2,7 @@ import SwiftUI
 
 struct FavoritesView: View {
     var viewModel: BooksViewModel
-
+    
     var favoriteBooks: [Book] {
         viewModel.books.filter { $0.isFavorite }
     }
@@ -12,12 +12,12 @@ struct FavoritesView: View {
             Section(header: Text("^[Found \(favoriteBooks.count) favorite book](inflect: true).")) {
                 ForEach(favoriteBooks) { book in
                     NavigationLink {
-                        BookDetailView(viewModel: viewModel, book: book)
+                        BookDetailView(viewModel: BookDetailViewModel(book: book, fileManagerHelper: viewModel.fileManagerHelper))
                     } label: {
                         HStack {
                             Image(systemName: "heart.fill")
                                 .foregroundColor(.red)
-                            Text(book.title)
+                            Text(book.title ?? "no title for you today")
                                 .font(.largeTitle)
                                 .padding()
                         }

@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AE75DFB22D524374000305D9 /* BookDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE75DFB12D524368000305D9 /* BookDetailViewModel.swift */; };
+		AE7BDEFA2D51004100D95F6D /* FileManagerHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE7BDEF92D51004100D95F6D /* FileManagerHelper.swift */; };
 		AE91A5032D3E649800E9AD91 /* BookDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE91A4F62D3E649800E9AD91 /* BookDetailView.swift */; };
 		AE91A5042D3E649800E9AD91 /* BookModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE91A4F72D3E649800E9AD91 /* BookModel.swift */; };
 		AE91A5052D3E649800E9AD91 /* BooksListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE91A4F82D3E649800E9AD91 /* BooksListView.swift */; };
@@ -20,10 +22,13 @@
 		AE91A50D2D3E649800E9AD91 /* HPApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE91A5012D3E649800E9AD91 /* HPApp.swift */; };
 		AE91A50E2D3E649800E9AD91 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AE91A4F32D3E649800E9AD91 /* Preview Assets.xcassets */; };
 		AE91A50F2D3E649800E9AD91 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AE91A4F52D3E649800E9AD91 /* Assets.xcassets */; };
+		AE953E162D526BB900FD886D /* CharacterDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE953E152D526BB900FD886D /* CharacterDetailViewModel.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		AE533D662D3950D9002658CD /* HP.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HP.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE75DFB12D524368000305D9 /* BookDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookDetailViewModel.swift; sourceTree = "<group>"; };
+		AE7BDEF92D51004100D95F6D /* FileManagerHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManagerHelper.swift; sourceTree = "<group>"; };
 		AE91A4F32D3E649800E9AD91 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		AE91A4F52D3E649800E9AD91 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		AE91A4F62D3E649800E9AD91 /* BookDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookDetailView.swift; sourceTree = "<group>"; };
@@ -38,6 +43,7 @@
 		AE91A4FF2D3E649800E9AD91 /* FavoritesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FavoritesView.swift; sourceTree = "<group>"; };
 		AE91A5002D3E649800E9AD91 /* HP.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HP.entitlements; sourceTree = "<group>"; };
 		AE91A5012D3E649800E9AD91 /* HPApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HPApp.swift; sourceTree = "<group>"; };
+		AE953E152D526BB900FD886D /* CharacterDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterDetailViewModel.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -85,6 +91,7 @@
 				AE91A5002D3E649800E9AD91 /* HP.entitlements */,
 				AE91A4F52D3E649800E9AD91 /* Assets.xcassets */,
 				AE91A4F42D3E649800E9AD91 /* Preview Content */,
+				AE7BDEF92D51004100D95F6D /* FileManagerHelper.swift */,
 			);
 			path = HP;
 			sourceTree = "<group>";
@@ -101,8 +108,10 @@
 		AE91A5112D3E64D600E9AD91 /* ViewModel */ = {
 			isa = PBXGroup;
 			children = (
+				AE75DFB12D524368000305D9 /* BookDetailViewModel.swift */,
 				AE91A4F92D3E649800E9AD91 /* BooksViewModel.swift */,
 				AE91A4FD2D3E649800E9AD91 /* CharactersViewModel.swift */,
+				AE953E152D526BB900FD886D /* CharacterDetailViewModel.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -198,8 +207,11 @@
 				AE91A5052D3E649800E9AD91 /* BooksListView.swift in Sources */,
 				AE91A5062D3E649800E9AD91 /* BooksViewModel.swift in Sources */,
 				AE91A5072D3E649800E9AD91 /* CharacterDetailView.swift in Sources */,
+				AE75DFB22D524374000305D9 /* BookDetailViewModel.swift in Sources */,
 				AE91A5082D3E649800E9AD91 /* CharacterModel.swift in Sources */,
+				AE953E162D526BB900FD886D /* CharacterDetailViewModel.swift in Sources */,
 				AE91A5092D3E649800E9AD91 /* CharactersListView.swift in Sources */,
+				AE7BDEFA2D51004100D95F6D /* FileManagerHelper.swift in Sources */,
 				AE91A50A2D3E649800E9AD91 /* CharactersViewModel.swift in Sources */,
 				AE91A50B2D3E649800E9AD91 /* ContentView.swift in Sources */,
 				AE91A50C2D3E649800E9AD91 /* FavoritesView.swift in Sources */,

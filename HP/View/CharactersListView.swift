@@ -1,41 +1,59 @@
 import SwiftUI
 
 struct CharactersListView: View {
-    @Bindable var viewModel: CharactersViewModel
-    private var idiom: UIUserInterfaceIdiom { UIDevice.current.userInterfaceIdiom }
+    let viewModel: CharactersViewModel
     
     var body: some View {
         NavigationStack {
-            List {
-                Section(header: Text("^[Found \(viewModel.filteredCharacters.count) character](inflect: true).")) {
-                    ForEach(viewModel.filteredCharacters) { character in
-                        NavigationLink {
-                            CharacterDetailView(character: character)
-                        } label: {
-                            if idiom == .pad {
-                                Text(character.fullName).font(.title)
-                            } else {
-                                Text(character.fullName).font(.title).padding()
+            ZStack {
+                List {
+                    Section(header: Text("^[Found \(viewModel.characters.count) character](inflect: true).")) {
+                        ForEach(viewModel.characters) { character in
+                            NavigationLink {
+                                CharacterDetailView(viewModel: CharacterDetailViewModel(character: character, fileManagerHelper: viewModel.fileManagerHelper))
+                            } label: {
+                                Text(character.fullName ?? "no name").font(.title).padding()
                             }
-                        }
-                        .task {
-                            await loadMoreContentIfNeeded(currentCharacter: character)
+                            .task {
+                                await loadMoreContentIfNeeded(currentCharacter: character)
+                            }
                         }
                     }
                 }
-            }
-            .task {
-                if !viewModel.didFetchContent {
-                    await viewModel.fetchCharacters()
+                .navigationTitle("Characters")
+                .task {
+                    do {
+                        try await viewModel.fetchCharacters()
+                    } catch {
+                        print("Error fetching books: \(error)")
+                    }
+                }
+                .refreshable {
+                    do {
+                        print("refreshing characters")
+                        try await viewModel.refreshCharacters()
+                    } catch {
+                        print("Error refreshing characters: \(error)")
+                    }
+                }
+                .alert("Error", isPresented: .constant(viewModel.showError)) {
+                    Button("Dismiss") {
+                        viewModel.showError = false
+                    }
+                } message: {
+                    Text(viewModel.errorMessage ?? "something went wrong")
+                }
+                
+                if viewModel.isLoading {
+                    ProgressView()
+                        .scaleEffect(2)
                 }
             }
-            .navigationTitle("Characters")
-            .searchable(text: $viewModel.searchText)
         }
     }
     
     private func loadMoreContentIfNeeded(currentCharacter: Character) async {
-        if currentCharacter.id == viewModel.filteredCharacters.last?.id {
+        if currentCharacter.id == viewModel.characters.last?.id {
             await viewModel.fetchNextPage()
         }
     }

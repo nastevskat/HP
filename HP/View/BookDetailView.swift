@@ -1,16 +1,14 @@
 import SwiftUI
 
 struct BookDetailView: View {
-    let viewModel: BooksViewModel
-    var book: Book
-    private var idiom: UIUserInterfaceIdiom { UIDevice.current.userInterfaceIdiom }
+    var viewModel: BookDetailViewModel
     @State private var uiImage: UIImage?
     
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(spacing: 30) {
-                Text(book.title)
-                    .font(idiom == .pad ? .largeTitle : .title)
+                Text(viewModel.book.title ?? "No title today")
+                    .font(.title)
                     .fontWeight(.bold)
                 
                 if let uiImage = uiImage {
@@ -22,25 +20,25 @@ struct BookDetailView: View {
                     ProgressView()
                         .frame(width: 300, height: 400)
                         .task {
-                            if let data = await viewModel.loadImage(for: book) {
+                            if let data = await viewModel.loadImageData() {
                                 uiImage = UIImage(data: data)
                             }
                         }
                 }
                 
-                Text(book.desc)
+                Text(viewModel.book.desc)
                     .font(.title3)
                     .padding()
                 
-                Text("Release date: \(book.releaseDate)")
+                Text("Release date: \(viewModel.book.releaseDate)")
                 
                 HStack {
                     Text("Add to Favorites:")
                     Button {
-                        viewModel.toggleFavorite(for: book)
+                        viewModel.toggleFavorite()
                     } label: {
-                        Image(systemName: book.isFavorite ? "heart.fill" : "heart")
-                            .foregroundStyle(book.isFavorite ? .red : .gray)
+                        Image(systemName: viewModel.book.isFavorite ? "heart.fill" : "heart")
+                            .foregroundStyle(viewModel.book.isFavorite ? .red : .gray)
                     }
                 }
                 .padding()

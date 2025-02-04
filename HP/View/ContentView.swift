@@ -4,11 +4,19 @@ import SwiftData
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @State var bookVM: BooksViewModel
-    @State var characterVM: CharactersViewModel = CharactersViewModel()
+    @State var characterVM: CharactersViewModel
     
-    init(modelContext: ModelContext){
-        let bookVM = BooksViewModel(modelContext: modelContext)
+    let fileManagerHelper: FileManagerHelper
+    
+    init(modelContext: ModelContext) {
+        let fileManagerHelper = FileManagerHelper(modelContext: modelContext)
+        self.fileManagerHelper = fileManagerHelper
+        
+        let bookVM = BooksViewModel(modelContext: modelContext, fileManagerHelper: fileManagerHelper)
         _bookVM = State(initialValue: bookVM)
+        
+        let characterVM = CharactersViewModel(modelContext: modelContext, fileManagerHelper: fileManagerHelper)
+        _characterVM = State(initialValue: characterVM)
     }
     
     var body: some View {

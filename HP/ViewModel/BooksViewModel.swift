@@ -4,12 +4,18 @@ import SwiftData
 
 @Observable class BooksViewModel {
     var books = [Book]()
-    var modelContext: ModelContext
+    let modelContext: ModelContext
     let max: Int = 5
     var page: Int = 1
+    var showError = false
+    var errorMessage: String?
+    var isLoading = false
     
-    init(modelContext: ModelContext) {
+    let fileManagerHelper: FileManagerHelper
+    
+    init(modelContext: ModelContext, fileManagerHelper: FileManagerHelper) {
         self.modelContext = modelContext
+        self.fileManagerHelper = fileManagerHelper
     }
     
     private func isBookInDatabase(_ bookId: Int) throws -> Bool {
@@ -19,66 +25,72 @@ import SwiftData
         return try modelContext.fetch(descriptor).first != nil
     }
     
-    func fetchBooks() async {
+    func fetchBooks() async throws {
         do {
             let descriptor = FetchDescriptor<Book>(sortBy: [SortDescriptor(\.title)])
             let localCount = try modelContext.fetchCount(descriptor)
             
             if localCount == 0 {
                 print("fetching from API")
-                await fetchBooksFromAPI()
+                try await fetchBooksFromAPI()
             } else {
                 print("fetching from local storage")
                 fetchBooksFromLocalStorage()
             }
         } catch {
-            print("Initial fetch failed: \(error.localizedDescription)")
-            fetchBooksFromLocalStorage()
+            isLoading = false
+            errorMessage = "Failed to fetch books"
+            showError = true
+            throw error
         }
     }
     
-    func fetchBooksFromAPI(page: Int = 1) async {
-        let urlString = "https://potterapi-fedeperin.vercel.app/en/books?max=\(max)&page=\(page)"
+    func fetchBooksFromAPI(page: Int? = nil) async throws {
+        isLoading = true
+        
+        let pageToFetch = page ?? self.page
+        let urlString = "https://potterapi-fedeperin.vercel.app/en/books?max=\(max)&page=\(pageToFetch)"
         guard let url = URL(string: urlString) else {
-            print("url string failed, fetching from db")
-            fetchBooksFromLocalStorage()
-            return
+            isLoading = false
+            errorMessage = "Invalid URL"
+            showError = true
+            throw URLError(.badURL)
         }
         
-        print("page number \(page)")
+        print("page number \(pageToFetch)")
         
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
             let decodedData = try JSONDecoder().decode([Book].self, from: data)
             
-            if page == 1 {
-                let descriptor = FetchDescriptor<Book>()
-                let existingBooks = try modelContext.fetch(descriptor)
-                for book in existingBooks {
-                    modelContext.delete(book)
-                    print("deleting everything")
-                }
-                modelContextSave()
-            }
-            
-            for book in decodedData {
+            for var book in decodedData {
                 if try !isBookInDatabase(book.id) {
                     modelContext.insert(book)
                     print("inserting book in db")
-                    //tuka dodadeno
-                    _ = await loadImage(for: book)
+                    _ = await fileManagerHelper.loadImage(for: &book)
                 }
             }
             
-            modelContextSave()
+            fileManagerHelper.modelContextSave()
+            fetchBooksFromLocalStorage()
             
-        } catch let error as DecodingError {
-            print("Decoding error: \(error.localizedDescription)")
+        } catch let error as URLError {
+            switch error.code {
+            case .notConnectedToInternet, .timedOut, .cannotFindHost, .cannotConnectToHost:
+                errorMessage = "Network connection error: \(error.localizedDescription)"
+            default:
+                errorMessage = "Unexpected error: \(error.localizedDescription)"
+            }
+            isLoading = false
+            showError = true
+            throw error
         } catch {
-            print("API or database error: \(error.localizedDescription)")
+            isLoading = false
+            errorMessage = "You've reached the end of the list. There's nothing left to fetch."
+            showError = true
+            throw error
         }
-        
-        fetchBooksFromLocalStorage()
+        isLoading = false
     }
     
     func fetchBooksFromLocalStorage() {
@@ -90,128 +102,32 @@ import SwiftData
                 print("Book ID: \(book.id), localImgURL: \(book.localImgURL ?? "nil")")
             }
         } catch {
+            isLoading = false
             print("Local storage fetch failed: \(error.localizedDescription)")
         }
     }
     
     func fetchNextPage() async {
+        page += 1
         print("fetching page: \(page)")
-        await fetchBooksFromAPI(page: page + 1)
-        
+        try? await fetchBooksFromAPI(page: page)
     }
     
-    func toggleFavorite(for book: Book) {
-        book.isFavorite.toggle()
-        modelContextSave()
-    }
-    
-    func modelContextSave() {
-        if self.modelContext.hasChanges {
-            do {
-                try modelContext.save()
-            } catch {
-                print("error saving to model context")
-            }
-        }
-    }
-    
-    private func preloadImagesForExistingBooks() async {
-        for book in books {
-            if book.localImgURL == nil {
-                _ = await loadImage(for: book)
-            }
-        }
-    }
-    
-    private func getDocumentsDirectory() -> URL {
-        let fileManager = FileManager.default
-        return fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
-    }
-    
-    private func getRelativePath(from fullPath: String) -> String? {
-        let documentsPath = getDocumentsDirectory().path
-        return fullPath.replacingOccurrences(of: documentsPath, with: "")
-    }
-    
-    private func getFullPath(from relativePath: String) -> String {
-        return getDocumentsDirectory().path + relativePath
-    }
-    
-    func loadImage(for book: Book) async -> Data? {
-        print("Starting loadImage for book ID: \(book.id)")
-        
-        // Check cached image
-        if let relativePath = book.localImgURL {
-            let fullPath = getFullPath(from: relativePath)
-            print("Checking full path: \(fullPath)")
-            
-            if FileManager.default.fileExists(atPath: fullPath) {
-                do {
-                    let data = try Data(contentsOf: URL(fileURLWithPath: fullPath))
-                    print("Successfully read \(data.count) bytes from cache")
-                    if !data.isEmpty {
-                        return data
-                    }
-                } catch {
-                    print("Error reading cached file: \(error)")
-                }
-            }
-        }
-        
-        // Download new image
-        guard let url = URL(string: book.cover) else {
-            print("Invalid cover URL")
-            return nil
-        }
+    func refreshBooks() async throws {
+        page = 1
         
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            print("Downloaded \(data.count) bytes")
-            
-            // Create relative path for storage
-            let coversPath = "/books/covers"
-            let fullCoversPath = getDocumentsDirectory().path + coversPath
-            
-            try? FileManager.default.createDirectory(atPath: fullCoversPath,
-                                                     withIntermediateDirectories: true)
-            
-            let filename = URL(string: book.cover)?.lastPathComponent ?? "\(book.id).jpg"
-            let relativePath = "\(coversPath)/\(filename)"
-            let fullPath = getFullPath(from: relativePath)
-            
-            // Remove existing file if present
-            try? FileManager.default.removeItem(atPath: fullPath)
-            
-            if FileManager.default.createFile(atPath: fullPath, contents: data) {
-                // Store only the relative path
-                book.localImgURL = relativePath
-                modelContextSave()
-                print("Saved image with relative path: \(relativePath)")
-                return data
-            }
-        } catch {
-            print("Error in download process: \(error)")
-        }
-        
-        return nil
-    }
-    
-    func clearAllImages() {
-        let coversPath = getDocumentsDirectory().path + "/books/covers"
-        
-        do {
-            try FileManager.default.removeItem(atPath: coversPath)
-            
             let descriptor = FetchDescriptor<Book>()
-            if let books = try? modelContext.fetch(descriptor) {
-                for book in books {
-                    book.localImgURL = nil
-                }
-                modelContextSave()
+            let existingBooks = try modelContext.fetch(descriptor)
+            for book in existingBooks {
+                modelContext.delete(book)
             }
+            fileManagerHelper.modelContextSave()
         } catch {
-            print("error deleting images \(error)")
+            print("Error clearing database: \(error)")
         }
+        
+        try await fetchBooksFromAPI()
     }
+    
 }
-
