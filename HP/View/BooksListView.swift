@@ -37,19 +37,14 @@ struct BooksListView: View {
                     print("refreshing characters")
                     await viewModel.refreshBooks()
                 }
-                .alert("Error", isPresented: .constant(viewModel.showError), presenting: viewModel.errorMessage) { _ in
-                    VStack {
-                        Button("Retry") {
-                            Task {
-                                await viewModel.fetchBooks()
-                            }
+                .alert(isPresented: .constant(viewModel.showError)) {
+                    Alert(title: Text("Error"), message: Text(viewModel.errorMessage ?? "An unexpected error occurred. Please try again"), primaryButton: .default(Text("Retry")) {
+                        Task {
+                            await viewModel.fetchBooks()
                         }
-                        Button("Dismiss", role: .cancel) {
-                            viewModel.showError = false
-                        }
-                    }
-                } message: { message in
-                    Text(message)
+                    }, secondaryButton: .cancel {
+                        viewModel.showError = false
+                    })
                 }
                 
                 if viewModel.isLoading {

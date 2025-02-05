@@ -30,20 +30,14 @@ struct CharactersListView: View {
                     print("refreshing characters")
                     await viewModel.refreshCharacters()
                 }
-                .alert("Error", isPresented: .constant(viewModel.showError), presenting: viewModel.errorMessage) { _ in
-                    VStack {
-                        Button("Retry") {
-                            Task {
-                                await viewModel.fetchCharacters()
-                            }
+                .alert(isPresented: .constant(viewModel.showError)) {
+                    Alert(title: Text("Error"), message: Text(viewModel.errorMessage ?? "An unexpected error occurred. Please try again"), primaryButton: .default(Text("Retry")) {
+                        Task {
+                            await viewModel.fetchCharacters()
                         }
-                        Button("Dismiss", role: .cancel) {
-                            viewModel.showError = false
-                        }
-                    }
-                } message: {
-                    message in
-                        Text(message)
+                    }, secondaryButton: .cancel {
+                        viewModel.showError = false
+                    })
                 }
                 
                 if viewModel.isLoading {

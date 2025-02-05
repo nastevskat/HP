@@ -13,7 +13,7 @@ import SwiftData
     
     let fileManagerHelper: FileManagerHelper
     let networkService: NetworkService
-
+    
     
     init(modelContext: ModelContext, fileManagerHelper: FileManagerHelper, networkService: NetworkService) {
         self.modelContext = modelContext
@@ -29,6 +29,7 @@ import SwiftData
     }
     
     func fetchBooks() async  {
+        isLoading = true
         do {
             let descriptor = FetchDescriptor<Book>(sortBy: [SortDescriptor(\.title)])
             let localCount = try modelContext.fetchCount(descriptor)
@@ -41,7 +42,7 @@ import SwiftData
                 fetchBooksFromLocalStorage()
             }
         } catch {
-            networkService.handleError(error)
+            handleError(error)
         }
         isLoading = false
     }
@@ -68,6 +69,8 @@ import SwiftData
             }
             fileManagerHelper.modelContextSave()
             fetchBooksFromLocalStorage()
+        } catch {
+            handleError(error)
         }
     }
     
@@ -81,22 +84,20 @@ import SwiftData
             }
         } catch {
             isLoading = false
-            print("Local storage fetch failed: \(error.localizedDescription)")
+            handleError(error)
         }
     }
     
     func fetchNextPage() async {
-        guard !isLoading else { return }
+        isLoading = true
         page += 1
-              
+        
         do {
-          try await fetchBooksFromAPI(page: page)
+            try await fetchBooksFromAPI(page: page)
         } catch {
-          if let bookError = error as? AppError, bookError.errorMessage != "You've reached the end of the list" {
-              networkService.handleError(error)
-            }
-        page -= 1
-      }
+            handleError(error)
+        }
+        isLoading = false
     }
     
     func refreshBooks() async {
@@ -114,8 +115,18 @@ import SwiftData
             try await fetchBooksFromAPI()
             
         } catch {
-            networkService.handleError(error)
+            handleError(error)
         }
+        isLoading = false
+    }
+    
+    func handleError(_ error: Error) {
+        if let appError = error as? AppError {
+            errorMessage = appError.printErrorMessage()
+        } else {
+            errorMessage = error.localizedDescription
+        }
+        showError = true
         isLoading = false
     }
 }

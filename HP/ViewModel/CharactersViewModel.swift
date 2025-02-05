@@ -13,7 +13,7 @@ import SwiftData
     
     let fileManagerHelper: FileManagerHelper
     let networkService: NetworkService
-
+    
     init(modelContext: ModelContext, fileManagerHelper: FileManagerHelper, networkService: NetworkService) {
         self.modelContext = modelContext
         self.fileManagerHelper = fileManagerHelper
@@ -28,6 +28,7 @@ import SwiftData
     }
     
     func fetchCharacters() async {
+        isLoading = true
         do {
             let descriptor = FetchDescriptor<Character>(sortBy: [SortDescriptor(\.fullName)])
             let localCount = try modelContext.fetchCount(descriptor)
@@ -40,7 +41,7 @@ import SwiftData
                 fetchCharactersFromLocalStorage()
             }
         } catch {
-            networkService.handleError(error)
+            handleError(error)
         }
         isLoading = false
     }
@@ -48,6 +49,7 @@ import SwiftData
     func fetchCharactersFromAPI(page: Int? = nil) async throws {
         let pageToFetch = page ?? self.page
         let urlString = "https://potterapi-fedeperin.vercel.app/en/characters?max=\(max)&page=\(pageToFetch)"
+        
         guard let url = URL(string: urlString) else {
             throw AppError.invalidURL
         }
@@ -64,9 +66,10 @@ import SwiftData
                     _ = await fileManagerHelper.loadImage(for: &character)
                 }
             }
-            
             fileManagerHelper.modelContextSave()
             fetchCharactersFromLocalStorage()
+        } catch {
+            handleError(error)
         }
     }
     
@@ -80,7 +83,7 @@ import SwiftData
             }
         } catch {
             isLoading = false
-            print("local storage fetch failed: \(error.localizedDescription)")
+            handleError(error)
         }
     }
     
@@ -91,17 +94,14 @@ import SwiftData
         do {
             try await fetchCharactersFromAPI(page: page)
         } catch {
-            if let characterError = error as? AppError, characterError.errorMessage != "You've reached the end of the list" {
-                networkService.handleError(error)
-              }
-          page -= 1
+            handleError(error)
         }
     }
     
     func refreshCharacters() async {
         isLoading = true
         page = 1
-
+        
         do {
             let descriptor = FetchDescriptor<Character>()
             let existingCharacters = try modelContext.fetch(descriptor)
@@ -111,8 +111,18 @@ import SwiftData
             fileManagerHelper.modelContextSave()
             try await fetchCharactersFromAPI()
         } catch {
-            networkService.handleError(error)
+            handleError(error)
         }
+        isLoading = false
+    }
+    
+    func handleError(_ error: Error) {
+        if let appError = error as? AppError {
+            errorMessage = appError.printErrorMessage()
+        } else {
+            errorMessage = error.localizedDescription
+        }
+        showError = true
         isLoading = false
     }
 }
