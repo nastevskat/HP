@@ -88,7 +88,7 @@ import SwiftData
     }
     
     func fetchNextPage() async {
-        guard !isLoading else { return }
+        isLoading = true
         page += 1
         
         do {
@@ -96,6 +96,7 @@ import SwiftData
         } catch {
             handleError(error)
         }
+        isLoading = false
     }
     
     func refreshCharacters() async {

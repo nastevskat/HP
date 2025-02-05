@@ -14,7 +14,6 @@ import SwiftData
     let fileManagerHelper: FileManagerHelper
     let networkService: NetworkService
     
-    
     init(modelContext: ModelContext, fileManagerHelper: FileManagerHelper, networkService: NetworkService) {
         self.modelContext = modelContext
         self.fileManagerHelper = fileManagerHelper
@@ -111,9 +110,7 @@ import SwiftData
                 modelContext.delete(book)
             }
             fileManagerHelper.modelContextSave()
-            
             try await fetchBooksFromAPI()
-            
         } catch {
             handleError(error)
         }

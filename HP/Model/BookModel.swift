@@ -17,7 +17,6 @@ final class Book: Codable, Persistable {
     var fullName: String?
     var image: String
     
-    
     @Attribute(.unique) var id: Int
     var number: Int
     var originalTitle: String
