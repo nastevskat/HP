@@ -23,6 +23,7 @@
 		AE91A50E2D3E649800E9AD91 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AE91A4F32D3E649800E9AD91 /* Preview Assets.xcassets */; };
 		AE91A50F2D3E649800E9AD91 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AE91A4F52D3E649800E9AD91 /* Assets.xcassets */; };
 		AE953E162D526BB900FD886D /* CharacterDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE953E152D526BB900FD886D /* CharacterDetailViewModel.swift */; };
+		AE953E182D526F2300FD886D /* NetworkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE953E172D526F2300FD886D /* NetworkService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -44,6 +45,7 @@
 		AE91A5002D3E649800E9AD91 /* HP.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HP.entitlements; sourceTree = "<group>"; };
 		AE91A5012D3E649800E9AD91 /* HPApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HPApp.swift; sourceTree = "<group>"; };
 		AE953E152D526BB900FD886D /* CharacterDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CharacterDetailViewModel.swift; sourceTree = "<group>"; };
+		AE953E172D526F2300FD886D /* NetworkService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,6 +94,7 @@
 				AE91A4F52D3E649800E9AD91 /* Assets.xcassets */,
 				AE91A4F42D3E649800E9AD91 /* Preview Content */,
 				AE7BDEF92D51004100D95F6D /* FileManagerHelper.swift */,
+				AE953E172D526F2300FD886D /* NetworkService.swift */,
 			);
 			path = HP;
 			sourceTree = "<group>";
@@ -212,6 +215,7 @@
 				AE953E162D526BB900FD886D /* CharacterDetailViewModel.swift in Sources */,
 				AE91A5092D3E649800E9AD91 /* CharactersListView.swift in Sources */,
 				AE7BDEFA2D51004100D95F6D /* FileManagerHelper.swift in Sources */,
+				AE953E182D526F2300FD886D /* NetworkService.swift in Sources */,
 				AE91A50A2D3E649800E9AD91 /* CharactersViewModel.swift in Sources */,
 				AE91A50B2D3E649800E9AD91 /* ContentView.swift in Sources */,
 				AE91A50C2D3E649800E9AD91 /* FavoritesView.swift in Sources */,

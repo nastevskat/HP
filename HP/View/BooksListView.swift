@@ -22,38 +22,41 @@ struct BooksListView: View {
                                 }
                             }
                             .task {
-                                await loadMoreContentIfNeeded(currentBook: book)
+                                if book.id == viewModel.books.last?.id {
+                                    await viewModel.fetchNextPage()
+                                }
                             }
                         }
                     }
                 }
                 .navigationTitle("Books")
                 .task {
-                    do {
-                        try await viewModel.fetchBooks()
-                    } catch {
-                        print("Error fetching books: \(error)")
-                    }
+                    await viewModel.fetchBooks()
                 }
                 .refreshable {
-                    do {
-                        print("refreshing characters")
-                        try await viewModel.refreshBooks()
-                    } catch {
-                        print("Error refreshing books: \(error)")
-                    }
+                    print("refreshing characters")
+                    await viewModel.refreshBooks()
                 }
-                .alert("Error", isPresented: .constant(viewModel.showError)) {
-                    Button("Dismiss") {
-                        viewModel.showError = false
+                .alert("Error", isPresented: .constant(viewModel.showError), presenting: viewModel.errorMessage) { _ in
+                    VStack {
+                        Button("Retry") {
+                            Task {
+                                await viewModel.fetchBooks()
+                            }
+                        }
+                        Button("Dismiss", role: .cancel) {
+                            viewModel.showError = false
+                        }
                     }
-                } message: {
-                    Text(viewModel.errorMessage ?? "Something went wrong")
+                } message: { message in
+                    Text(message)
                 }
                 
                 if viewModel.isLoading {
                     ProgressView()
                         .scaleEffect(2)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color.black.opacity(0.1))
                 }
             }
             .toolbar {
@@ -66,12 +69,6 @@ struct BooksListView: View {
                     }
                 }
             }
-        }
-    }
-    
-    private func loadMoreContentIfNeeded(currentBook: Book) async {
-        if currentBook.id == viewModel.books.last?.id {
-            await viewModel.fetchNextPage()
         }
     }
 }

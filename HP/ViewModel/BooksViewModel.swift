@@ -12,10 +12,13 @@ import SwiftData
     var isLoading = false
     
     let fileManagerHelper: FileManagerHelper
+    let networkService: NetworkService
+
     
-    init(modelContext: ModelContext, fileManagerHelper: FileManagerHelper) {
+    init(modelContext: ModelContext, fileManagerHelper: FileManagerHelper, networkService: NetworkService) {
         self.modelContext = modelContext
         self.fileManagerHelper = fileManagerHelper
+        self.networkService = networkService
     }
     
     private func isBookInDatabase(_ bookId: Int) throws -> Bool {
@@ -25,7 +28,7 @@ import SwiftData
         return try modelContext.fetch(descriptor).first != nil
     }
     
-    func fetchBooks() async throws {
+    func fetchBooks() async  {
         do {
             let descriptor = FetchDescriptor<Book>(sortBy: [SortDescriptor(\.title)])
             let localCount = try modelContext.fetchCount(descriptor)
@@ -38,30 +41,23 @@ import SwiftData
                 fetchBooksFromLocalStorage()
             }
         } catch {
-            isLoading = false
-            errorMessage = "Failed to fetch books"
-            showError = true
-            throw error
+            networkService.handleError(error)
         }
+        isLoading = false
     }
     
     func fetchBooksFromAPI(page: Int? = nil) async throws {
-        isLoading = true
-        
         let pageToFetch = page ?? self.page
         let urlString = "https://potterapi-fedeperin.vercel.app/en/books?max=\(max)&page=\(pageToFetch)"
+        
         guard let url = URL(string: urlString) else {
-            isLoading = false
-            errorMessage = "Invalid URL"
-            showError = true
-            throw URLError(.badURL)
+            throw AppError.invalidURL
         }
         
         print("page number \(pageToFetch)")
         
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
-            let decodedData = try JSONDecoder().decode([Book].self, from: data)
+            let decodedData: [Book] = try await networkService.loadData(from: url)
             
             for var book in decodedData {
                 if try !isBookInDatabase(book.id) {
@@ -70,27 +66,9 @@ import SwiftData
                     _ = await fileManagerHelper.loadImage(for: &book)
                 }
             }
-            
             fileManagerHelper.modelContextSave()
             fetchBooksFromLocalStorage()
-            
-        } catch let error as URLError {
-            switch error.code {
-            case .notConnectedToInternet, .timedOut, .cannotFindHost, .cannotConnectToHost:
-                errorMessage = "Network connection error: \(error.localizedDescription)"
-            default:
-                errorMessage = "Unexpected error: \(error.localizedDescription)"
-            }
-            isLoading = false
-            showError = true
-            throw error
-        } catch {
-            isLoading = false
-            errorMessage = "You've reached the end of the list. There's nothing left to fetch."
-            showError = true
-            throw error
         }
-        isLoading = false
     }
     
     func fetchBooksFromLocalStorage() {
@@ -108,12 +86,21 @@ import SwiftData
     }
     
     func fetchNextPage() async {
+        guard !isLoading else { return }
         page += 1
-        print("fetching page: \(page)")
-        try? await fetchBooksFromAPI(page: page)
+              
+        do {
+          try await fetchBooksFromAPI(page: page)
+        } catch {
+          if let bookError = error as? AppError, bookError.errorMessage != "You've reached the end of the list" {
+              networkService.handleError(error)
+            }
+        page -= 1
+      }
     }
     
-    func refreshBooks() async throws {
+    func refreshBooks() async {
+        isLoading = true
         page = 1
         
         do {
@@ -123,11 +110,12 @@ import SwiftData
                 modelContext.delete(book)
             }
             fileManagerHelper.modelContextSave()
+            
+            try await fetchBooksFromAPI()
+            
         } catch {
-            print("Error clearing database: \(error)")
+            networkService.handleError(error)
         }
-        
-        try await fetchBooksFromAPI()
+        isLoading = false
     }
-    
 }

@@ -15,46 +15,44 @@ struct CharactersListView: View {
                                 Text(character.fullName ?? "no name").font(.title).padding()
                             }
                             .task {
-                                await loadMoreContentIfNeeded(currentCharacter: character)
+                                if character.id == viewModel.characters.last?.id {
+                                    await viewModel.fetchNextPage()
+                                }
                             }
                         }
                     }
                 }
                 .navigationTitle("Characters")
                 .task {
-                    do {
-                        try await viewModel.fetchCharacters()
-                    } catch {
-                        print("Error fetching books: \(error)")
-                    }
+                    await viewModel.fetchCharacters()
                 }
                 .refreshable {
-                    do {
-                        print("refreshing characters")
-                        try await viewModel.refreshCharacters()
-                    } catch {
-                        print("Error refreshing characters: \(error)")
-                    }
+                    print("refreshing characters")
+                    await viewModel.refreshCharacters()
                 }
-                .alert("Error", isPresented: .constant(viewModel.showError)) {
-                    Button("Dismiss") {
-                        viewModel.showError = false
+                .alert("Error", isPresented: .constant(viewModel.showError), presenting: viewModel.errorMessage) { _ in
+                    VStack {
+                        Button("Retry") {
+                            Task {
+                                await viewModel.fetchCharacters()
+                            }
+                        }
+                        Button("Dismiss", role: .cancel) {
+                            viewModel.showError = false
+                        }
                     }
                 } message: {
-                    Text(viewModel.errorMessage ?? "something went wrong")
+                    message in
+                        Text(message)
                 }
                 
                 if viewModel.isLoading {
                     ProgressView()
                         .scaleEffect(2)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Color.black.opacity(0.1))
                 }
             }
-        }
-    }
-    
-    private func loadMoreContentIfNeeded(currentCharacter: Character) async {
-        if currentCharacter.id == viewModel.characters.last?.id {
-            await viewModel.fetchNextPage()
         }
     }
 }

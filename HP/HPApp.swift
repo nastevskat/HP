@@ -9,7 +9,7 @@ struct HPApp: App {
         do {
             container = try ModelContainer(for: Book.self, Character.self)
         } catch {
-            fatalError("Failed to create ModelContainer for Books.")
+            fatalError("Failed to create ModelContainer.")
         }
     }
     

@@ -12,10 +12,10 @@ struct ContentView: View {
         let fileManagerHelper = FileManagerHelper(modelContext: modelContext)
         self.fileManagerHelper = fileManagerHelper
         
-        let bookVM = BooksViewModel(modelContext: modelContext, fileManagerHelper: fileManagerHelper)
+        let bookVM = BooksViewModel(modelContext: modelContext, fileManagerHelper: fileManagerHelper, networkService: NetworkService())
         _bookVM = State(initialValue: bookVM)
         
-        let characterVM = CharactersViewModel(modelContext: modelContext, fileManagerHelper: fileManagerHelper)
+        let characterVM = CharactersViewModel(modelContext: modelContext, fileManagerHelper: fileManagerHelper, networkService: NetworkService())
         _characterVM = State(initialValue: characterVM)
     }
     
