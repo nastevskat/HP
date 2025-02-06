@@ -2,6 +2,13 @@ import Foundation
 import Observation
 import SwiftData
 
+//
+//class AllBooks {
+//    static let shared = AllBooks()
+//    
+//    var books: [Book] = []
+//}
+
 @Observable class BooksViewModel {
     var books = [Book]()
     let modelContext: ModelContext
@@ -27,7 +34,7 @@ import SwiftData
         return try modelContext.fetch(descriptor).first != nil
     }
     
-    func fetchBooks() async  {
+    func fetchBooks() async {
         isLoading = true
         do {
             let descriptor = FetchDescriptor<Book>(sortBy: [SortDescriptor(\.title)])
@@ -48,35 +55,27 @@ import SwiftData
     
     func fetchBooksFromAPI(page: Int? = nil) async throws {
         let pageToFetch = page ?? self.page
-        let urlString = "https://potterapi-fedeperin.vercel.app/en/books?max=\(max)&page=\(pageToFetch)"
-        
-        guard let url = URL(string: urlString) else {
-            throw AppError.invalidURL
-        }
-        
+    
         print("page number \(pageToFetch)")
         
-        do {
-            let decodedData: [Book] = try await networkService.loadData(from: url)
-            
-            for var book in decodedData {
-                if try !isBookInDatabase(book.id) {
-                    modelContext.insert(book)
-                    print("inserting book in db")
-                    _ = await fileManagerHelper.loadImage(for: &book)
-                }
+        let decodedData: [Book] = try await networkService.loadData(for: APIEndpoint.book(max: max, pageToFetch: pageToFetch))
+        
+        for var book in decodedData {
+            if try !isBookInDatabase(book.id) {
+                modelContext.insert(book)
+                print("inserting book in db")
+                _ = await fileManagerHelper.loadImage(for: &book)
             }
-            fileManagerHelper.modelContextSave()
-            fetchBooksFromLocalStorage()
-        } catch {
-            handleError(error)
         }
+        fileManagerHelper.modelContextSave()
+        fetchBooksFromLocalStorage()
     }
     
     func fetchBooksFromLocalStorage() {
         do {
             let descriptor = FetchDescriptor<Book>(sortBy: [SortDescriptor(\.title)])
             books = try modelContext.fetch(descriptor)
+          //  AllBooks.shared.books = books // sign
             print("Loaded \(books.count) books from storage")
             for book in books {
                 print("Book ID: \(book.id), localImgURL: \(book.localImgURL ?? "nil")")
@@ -119,7 +118,7 @@ import SwiftData
     
     func handleError(_ error: Error) {
         if let appError = error as? AppError {
-            errorMessage = appError.printErrorMessage()
+            errorMessage = appError.errorMessage
         } else {
             errorMessage = error.localizedDescription
         }

@@ -2,20 +2,23 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
     @State var bookVM: BooksViewModel
     @State var characterVM: CharactersViewModel
     
-    let fileManagerHelper: FileManagerHelper
-    
-    init(modelContext: ModelContext) {
-        let fileManagerHelper = FileManagerHelper(modelContext: modelContext)
-        self.fileManagerHelper = fileManagerHelper
+    init(modelContext: ModelContext, networkService: NetworkService, fileManagerHelper: FileManagerHelper) {
         
-        let bookVM = BooksViewModel(modelContext: modelContext, fileManagerHelper: fileManagerHelper, networkService: NetworkService())
+        let bookVM = BooksViewModel(
+            modelContext: modelContext,
+            fileManagerHelper: fileManagerHelper,
+            networkService: networkService
+        )
         _bookVM = State(initialValue: bookVM)
         
-        let characterVM = CharactersViewModel(modelContext: modelContext, fileManagerHelper: fileManagerHelper, networkService: NetworkService())
+        let characterVM = CharactersViewModel(
+            modelContext: modelContext,
+            fileManagerHelper: fileManagerHelper,
+            networkService: networkService
+        )
         _characterVM = State(initialValue: characterVM)
     }
     

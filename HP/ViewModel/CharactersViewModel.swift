@@ -48,29 +48,19 @@ import SwiftData
     
     func fetchCharactersFromAPI(page: Int? = nil) async throws {
         let pageToFetch = page ?? self.page
-        let urlString = "https://potterapi-fedeperin.vercel.app/en/characters?max=\(max)&page=\(pageToFetch)"
-        
-        guard let url = URL(string: urlString) else {
-            throw AppError.invalidURL
-        }
-        
         print("page number \(pageToFetch)")
+    
+        let decodedData: [Character] = try await networkService.loadData(for: APIEndpoint.character(max: max, pageToFetch: pageToFetch))
         
-        do {
-            let decodedData: [Character] = try await networkService.loadData(from: url)
-            
-            for var character in decodedData {
-                if try !isCharacterInDatabase(character.id) {
-                    modelContext.insert(character)
-                    print("inserting character in db")
-                    _ = await fileManagerHelper.loadImage(for: &character)
-                }
+        for var character in decodedData {
+            if try !isCharacterInDatabase(character.id) {
+                modelContext.insert(character)
+                print("inserting character in db")
+                _ = await fileManagerHelper.loadImage(for: &character)
             }
-            fileManagerHelper.modelContextSave()
-            fetchCharactersFromLocalStorage()
-        } catch {
-            handleError(error)
         }
+        fileManagerHelper.modelContextSave()
+        fetchCharactersFromLocalStorage()
     }
     
     func fetchCharactersFromLocalStorage() {

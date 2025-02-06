@@ -1,14 +1,24 @@
 import Foundation
 import SwiftData
 
-protocol Persistable {
-    var id: Int { get }
-    var localImgURL: String? { get set }
-    var title: String? { get set }
-    var fullName: String? { get set }
-    var image: String { get set }
-    var isFavorite: Bool { get set }
-}
+//struct UserPrefences: Codable {
+//    var theme: Int
+//    var language: String
+//}
+//
+//class Service {
+//    func a() {
+//        let user = UserPrefences(theme: 0, language: "en")
+//        let data = NSKeyedArchiver.archivedData(withRootObject: user)
+//        UserDefaults.standard.set(data, forKey: "Tamara")
+//        
+//        let userData = UserDefaults.standard.data(forKey: "Tamara")!
+//        let userpref = NSKeyedUnarchiver.unarchiveObject(with: userData) as! UserPrefences
+//    }
+//}
+//
+//user_id_theme = dark
+//user_id_language
 
 @Model
 final class Book: Codable, Persistable {

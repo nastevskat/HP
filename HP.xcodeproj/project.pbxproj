@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AE5581622D54EF0B00425605 /* Persistable.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE5581612D54EF0B00425605 /* Persistable.swift */; };
 		AE75DFB22D524374000305D9 /* BookDetailViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE75DFB12D524368000305D9 /* BookDetailViewModel.swift */; };
 		AE7BDEFA2D51004100D95F6D /* FileManagerHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE7BDEF92D51004100D95F6D /* FileManagerHelper.swift */; };
 		AE91A5032D3E649800E9AD91 /* BookDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE91A4F62D3E649800E9AD91 /* BookDetailView.swift */; };
@@ -28,6 +29,7 @@
 
 /* Begin PBXFileReference section */
 		AE533D662D3950D9002658CD /* HP.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HP.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AE5581612D54EF0B00425605 /* Persistable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistable.swift; sourceTree = "<group>"; };
 		AE75DFB12D524368000305D9 /* BookDetailViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BookDetailViewModel.swift; sourceTree = "<group>"; };
 		AE7BDEF92D51004100D95F6D /* FileManagerHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileManagerHelper.swift; sourceTree = "<group>"; };
 		AE91A4F32D3E649800E9AD91 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -95,6 +97,7 @@
 				AE91A4F42D3E649800E9AD91 /* Preview Content */,
 				AE7BDEF92D51004100D95F6D /* FileManagerHelper.swift */,
 				AE953E172D526F2300FD886D /* NetworkService.swift */,
+				AE5581612D54EF0B00425605 /* Persistable.swift */,
 			);
 			path = HP;
 			sourceTree = "<group>";
@@ -215,6 +218,7 @@
 				AE953E162D526BB900FD886D /* CharacterDetailViewModel.swift in Sources */,
 				AE91A5092D3E649800E9AD91 /* CharactersListView.swift in Sources */,
 				AE7BDEFA2D51004100D95F6D /* FileManagerHelper.swift in Sources */,
+				AE5581622D54EF0B00425605 /* Persistable.swift in Sources */,
 				AE953E182D526F2300FD886D /* NetworkService.swift in Sources */,
 				AE91A50A2D3E649800E9AD91 /* CharactersViewModel.swift in Sources */,
 				AE91A50B2D3E649800E9AD91 /* ContentView.swift in Sources */,

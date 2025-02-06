@@ -6,46 +6,7 @@ struct BooksListView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                List {
-                    Section(header: Text("^[Found \(viewModel.books.count) book](inflect: true).")) {
-                        ForEach(viewModel.books) { book in
-                            NavigationLink {
-                                BookDetailView(viewModel: BookDetailViewModel(book: book, fileManagerHelper: viewModel.fileManagerHelper))
-                            } label: {
-                                HStack {
-                                    Image(systemName: book.isFavorite ? "heart.fill" : "heart")
-                                        .foregroundColor(book.isFavorite ? .red : .gray)
-                                    
-                                    Text(book.title ?? "no title sorry")
-                                        .font(.largeTitle)
-                                        .padding()
-                                }
-                            }
-                            .task {
-                                if book.id == viewModel.books.last?.id {
-                                    await viewModel.fetchNextPage()
-                                }
-                            }
-                        }
-                    }
-                }
-                .navigationTitle("Books")
-                .task {
-                    await viewModel.fetchBooks()
-                }
-                .refreshable {
-                    print("refreshing characters")
-                    await viewModel.refreshBooks()
-                }
-                .alert(isPresented: .constant(viewModel.showError)) {
-                    Alert(title: Text("Error"), message: Text(viewModel.errorMessage ?? "An unexpected error occurred. Please try again"), primaryButton: .default(Text("Retry")) {
-                        Task {
-                            await viewModel.fetchBooks()
-                        }
-                    }, secondaryButton: .cancel {
-                        viewModel.showError = false
-                    })
-                }
+                BookListContent(viewModel: viewModel)
                 
                 if viewModel.isLoading {
                     ProgressView()
@@ -64,6 +25,56 @@ struct BooksListView: View {
                     }
                 }
             }
+        }
+    }
+}
+struct BookListContent: View {
+    var viewModel: BooksViewModel
+    
+    var body: some View {
+        List {
+            Section(header: Text("^[Found \(viewModel.books.count) book](inflect: true).")) {
+                ForEach(viewModel.books) { book in
+                    NavigationLink {
+                        BookDetailView(viewModel: BookDetailViewModel(book: book, fileManagerHelper: viewModel.fileManagerHelper))
+                    } label: {
+                        HStack {
+                            Image(systemName: book.isFavorite ? "heart.fill" : "heart")
+                                .foregroundColor(book.isFavorite ? .red : .gray)
+                            
+                            Text(book.title ?? "No title available")
+                                .font(.largeTitle)
+                                .padding()
+                        }
+                    }
+                    .task {
+                        if book.id == viewModel.books.last?.id {
+                            await viewModel.fetchNextPage()
+                        }
+                    }
+                }
+            }
+        }
+        .navigationTitle("Books")
+        .task {
+            await viewModel.fetchBooks()
+        }
+        .refreshable {
+            await viewModel.refreshBooks()
+        }
+        .alert(isPresented: .constant(viewModel.showError)) {
+            Alert(
+                title: Text("Error"),
+                message: Text(viewModel.errorMessage ?? "An unexpected error occurred. Please try again"),
+                primaryButton: .default(Text("Retry")) {
+                    Task {
+                        await viewModel.fetchBooks()
+                    }
+                },
+                secondaryButton: .cancel {
+                    viewModel.showError = false
+                }
+            )
         }
     }
 }
